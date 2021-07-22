@@ -163,7 +163,7 @@ export default {
   },
   filters: {
     filterImg(goodDetail) {
-      return goodDetail.detailInfo.detailImage[0].list[0];
+      return 'http:' + goodDetail.detailInfo.detailImage[0].list[0];
     },
     prasePrice(price, flag) {
       const [num1, num2] = price.split(".");

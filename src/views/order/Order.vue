@@ -2,16 +2,25 @@
   <div class="order">
     <van-sticky>
       <nav-bar class="nav-bar">
-        <i class="iconfont icon-fanhui" slot="left"></i>
+        <i class="iconfont icon-fanhui" slot="left" @click="back"></i>
         <span slot="center">订单列表</span>
         <i class="iconfont icon-gengduo" slot="right"></i>
       </nav-bar>
     </van-sticky>
     <van-tabs @click="checkStatus">
       <van-tab title="待支付">
-        <div class="goods-warp" v-for="(item, index) in order" :key="index">
-          <div class="goods" v-for="(desc, descIndex) in item.orderDesc" :key="descIndex">
-            <img :src="desc.img" alt="" />
+        <div
+          class="goods-warp"
+          @click="linkOrderDeatil(item.order_id)"
+          v-for="(item, index) in order"
+          :key="index"
+        >
+          <div
+            class="goods"
+            v-for="(desc, descIndex) in item.orderDesc"
+            :key="descIndex"
+          >
+            <img :src="desc.show | parseImg" alt="" />
             <div class="title">{{ desc.title }}</div>
             <div class="goods-info">
               <span>￥{{ desc.price }}</span>
@@ -21,13 +30,24 @@
           <div class="totalPrice">
             总计：<span style="color: red">￥{{ item.order_totalPrice }}</span>
           </div>
-          <div class="btn"> <van-button color="#FF7500" size="small">去支付</van-button></div>
+          <div class="btn">
+            <van-button color="#FF7500" size="small">去支付</van-button>
+          </div>
         </div>
       </van-tab>
       <van-tab title="已完成">
-        <div class="goods-warp" v-for="(item, index) in order" :key="index">
-          <div class="goods" v-for="(desc, descIndex) in item.orderDesc" :key="descIndex">
-            <img :src="desc.img" alt="" />
+        <div
+          class="goods-warp"
+          @click="linkOrderDeatil(item.order_id)"
+          v-for="(item, index) in order"
+          :key="index"
+        >
+          <div
+            class="goods"
+            v-for="(desc, descIndex) in item.orderDesc"
+            :key="descIndex"
+          >
+            <img :src="desc.show | parseImg" alt="" />
             <div class="title">{{ desc.title }}</div>
             <div class="goods-info">
               <span>￥{{ desc.price }}</span>
@@ -40,9 +60,18 @@
         </div>
       </van-tab>
       <van-tab title="取消">
-        <div class="goods-warp" v-for="(item, index) in order" :key="index">
-          <div class="goods" v-for="(desc, descIndex) in item.orderDesc" :key="descIndex">
-            <img :src="desc.img" alt="" />
+        <div
+          class="goods-warp"
+          @click="linkOrderDeatil(item.order_id)"
+          v-for="(item, index) in order"
+          :key="index"
+        >
+          <div
+            class="goods"
+            v-for="(desc, descIndex) in item.orderDesc"
+            :key="descIndex"
+          >
+            <img :src="desc.show | parseImg" alt="" />
             <div class="title">{{ desc.title }}</div>
             <div class="goods-info">
               <span>￥{{ desc.price }}</span>
@@ -64,7 +93,7 @@ import { queryOrder } from "../../api";
 import { queryToken } from "../../util";
 import NavBar from "../../components/navbar/NavBar.vue";
 export default {
-  name:'order',
+  name: "order",
   components: { NavBar },
   data() {
     return {
@@ -80,13 +109,33 @@ export default {
   mounted() {
     this._queryOrder();
   },
+  filters: {
+    parseImg(show) {
+      const str = JSON.parse(show).img;
+      return str.indexOf("http:") == -1 ? "http:" + str : str;
+    },
+  },
   methods: {
     async _queryOrder(status = 0) {
-      const { data } = await queryOrder({ uid: this.user.id, status }, this.token);
+      const { data } = await queryOrder(
+        { uid: this.user.id, status },
+        this.token
+      );
       this.order = data;
     },
     checkStatus(status) {
       this._queryOrder(status);
+    },
+    back() {
+      this.$router.back(-1);
+    },
+    linkOrderDeatil(order_id) {
+      this.$router.push({
+        path: "/order-detail",
+        query: {
+          order_id,
+        },
+      });
     },
   },
 };
@@ -133,7 +182,7 @@ export default {
       font-size: 14px;
       text-align: right;
     }
-    .btn{
+    .btn {
       display: flex;
       height: 50px;
       justify-content: flex-end;

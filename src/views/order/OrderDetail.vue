@@ -2,7 +2,7 @@
   <div class="order-detail">
     <van-sticky>
       <nav-bar class="nav-bar">
-        <i class="iconfont icon-fanhui" slot="left"></i>
+        <i class="iconfont icon-fanhui" @click="back" slot="left"></i>
         <span slot="center">订单详情</span>
         <i class="iconfont icon-gengduo" slot="right"></i>
       </nav-bar>
@@ -29,14 +29,14 @@
         <div class="info-title">订单信息</div>
         <div class="info">
           <div class="info-left">
-            <div>订单编号：</div>
-            <div>下单时间：</div>
+            <div>订单编号：{{ order.id }}</div>
+            <div>下单时间：{{ order.createDateTime | parseTime }}</div>
           </div>
           <span>复制</span>
         </div>
       </div>
     </div>
-    <div class="order-bottom">
+    <div class="order-bottom" v-if="order.status == undefined">
       <van-button type="default" round size="small">联系客服</van-button>
       <van-button
         @click="_saveOrder"
@@ -48,13 +48,57 @@
         >添加订单</van-button
       >
     </div>
+    <div class="order-bottom" v-else-if="order.status == 0">
+      <van-button type="default" round size="small" @click="_cancel"
+        >取消</van-button
+      >
+      <van-button
+        @click="_pay"
+        type="default"
+        round
+        plain
+        color="#00BFC0"
+        size="small"
+        >立即支付</van-button
+      >
+    </div>
+    <div class="order-bottom" v-else-if="order.status == 1">
+      <van-button
+        @click="_del"
+        type="default"
+        round
+        plain
+        color="#00BFC0"
+        size="small"
+        >删除</van-button
+      >
+    </div>
+    <div class="order-bottom" v-else-if="order.status == 2">
+      <van-button
+        @click="_del"
+        type="default"
+        round
+        plain
+        color="#00BFC0"
+        size="small"
+        >删除</van-button
+      >
+    </div>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
-import { queryGood, saveOrder } from "../../api";
-import { queryToken } from "../../util";
+import { mapState, mapActions } from "vuex";
+import * as dayjs from "dayjs";
+import {
+  queryGood,
+  saveOrder,
+  queryOne,
+  pay,
+  delOrder,
+  cancel,
+} from "../../api";
+import { queryToken, toast } from "../../util";
 import NavBar from "../../components/navbar/NavBar.vue";
 export default {
   name: "orderDetail",
@@ -77,14 +121,30 @@ export default {
     },
   },
   methods: {
+    ...mapActions(["clearCartIds"]),
+    back() {
+      this.$router.back(-1);
+    },
     async _queryGood() {
-      const info = this.$route.query.info;
-      const id = info.map((item) => item.id);
-      const { data } = await queryGood({ id });
-      data.forEach((item, index) => {
-        item.num = info[index].num;
-      });
-      this.goods = data;
+      const { info, order_id } = this.$route.query;
+      if (!order_id) {
+        const id = info.map((item) => item.id);
+        const { data } = await queryGood({ id });
+        data.forEach((item, index) => {
+          item.num = info[index].num;
+        });
+        this.goods = data;
+        return;
+      }
+      this._queryOne(order_id);
+    },
+    async _queryOne(order_id) {
+      const { data } = await queryOne(
+        { uid: this.user.id, id: order_id || this.order.id },
+        this.token
+      );
+      this.goods = data.orderDesc;
+      this.order = data;
     },
     async _saveOrder() {
       const goods = this.goods.map((item) => ({ gid: item.id, num: item.num }));
@@ -96,12 +156,43 @@ export default {
         },
         this.token
       );
-      console.log(data);
+      toast(data);
+      this.clearCartIds();
+      this.$router.replace("/order");
+    },
+    // 支付
+    async _pay() {
+      const { data } = await pay(
+        { uid: this.user.id, id: this.order.id },
+        this.token
+      );
+      this._queryOne();
+    },
+    // 删除订单
+    async _del() {
+      const { data } = await delOrder(
+        { uid: this.user.id, id: this.order.id },
+        this.token
+      );
+      toast(data + ",可以在回收站恢复");
+      this.$router.replace("/order");
+    },
+    // 取消订单
+    async _cancel() {
+      const { data } = await cancel(
+        { uid: this.user.id, id: this.order.id },
+        this.token
+      );
+      toast(data);
+      this._queryOne();
     },
   },
   filters: {
     parseImg(show) {
       return JSON.parse(show).img;
+    },
+    parseTime(time) {
+      return dayjs(time).format("YYYY-MM-DD hh:mm:ss");
     },
   },
   components: { NavBar },

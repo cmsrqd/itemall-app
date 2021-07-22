@@ -1,8 +1,13 @@
 <template>
   <div class="cart">
     <van-sticky>
-      <nav-bar class="nav-bar" style="transition: '0.5s'">
-        <i class="iconfont icon-fanhui" slot="left"></i>
+      <nav-bar class="nav-bar">
+        <i
+          class="iconfont icon-fanhui"
+          v-if="pathName == 'detail'"
+          slot="left"
+          @click="back"
+        ></i>
         <span slot="center">购物车</span>
         <span slot="right" @click="edit">{{ showDel ? "取消" : "编辑" }}</span>
       </nav-bar>
@@ -88,6 +93,7 @@
           color="#FF9100"
           size="small"
           round
+          @click="onBuyClicked"
           >结 算
           <van-badge :content="id.length" color="#FFCAB5" />
         </van-button>
@@ -126,7 +132,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState,mapMutations } from "vuex";
 import { queryToken, toast } from "../../util";
 import { delCart, queryCart, saveCart } from "../../api";
 import NavBar from "../../components/navbar/NavBar.vue";
@@ -138,7 +144,11 @@ export default {
       id: [],
       checked: false, // 全选
       showDel: false,
+      pathName: "",
     };
+  },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => (vm.name = from.name));
   },
   components: { NavBar, SubmitBar },
   computed: {
@@ -149,7 +159,8 @@ export default {
     totalPrice() {
       let total = 0;
       for (const item of this.carts) {
-        if (this.id.indexOf(item.id) != -1) total += item.num * item.goods.price;
+        if (this.id.indexOf(item.id) != -1)
+          total += item.num * item.goods.price;
       }
       return total;
     },
@@ -169,8 +180,14 @@ export default {
   },
   mounted() {
     this._queryCart();
+    this.pathName = this.name;
   },
   methods: {
+    ...mapMutations(['saveCartId']),
+    // 返回
+    back() {
+      this.$router.back(-1);
+    },
     async _queryCart() {
       const { data } = await queryCart({ uid: this.user.id }, this.token);
       this.carts = data;
@@ -185,7 +202,10 @@ export default {
       this.showDel = !this.showDel;
     },
     async del() {
-      const { data } = await delCart({ uid: this.user.id, id: this.id }, this.token);
+      const { data } = await delCart(
+        { uid: this.user.id, id: this.id },
+        this.token
+      );
       this._queryCart();
       toast(data);
     },
@@ -207,7 +227,9 @@ export default {
       // map=> 被处理过的新数组 [{num:xx,id:xx}]
       const info = this.carts
         .map((item) =>
-          this.id.indexOf(item.id) != -1 ? { id: item.goods.id, num: item.num } : false
+          this.id.indexOf(item.id) != -1
+            ? { id: item.goods.id, num: item.num }
+            : false
         )
         .filter((item) => item);
       console.log(info);
@@ -215,6 +237,7 @@ export default {
         path: "/order-detail",
         query: { info },
       });
+      this.saveCartId(this.id)
     },
   },
 };
