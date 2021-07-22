@@ -10,9 +10,7 @@
         }"
       >
         <i class="iconfont icon-saoma" slot="left"></i>
-        <div slot="center" class="seach">
-          <i class="iconfont icon-iconseach"></i>搜索
-        </div>
+        <div slot="center" class="seach"><i class="iconfont icon-iconseach"></i>搜索</div>
         <i class="iconfont icon-msg" slot="right"></i>
       </nav-bar>
     </van-sticky>
@@ -35,10 +33,13 @@
     >
       <van-tab v-for="(item, index) in tab" :key="index" :title="item">
         <van-list @load="onLoad" :immediate-check="false" loading-text="加载中">
-          <waterfall :left="goods[type].leftList" :right="goods[type].rightList"></waterfall>
+          <waterfall :left="goods[type].leftList" :right="goods[type].rightList">
+          </waterfall>
         </van-list>
         <div class="loading">
-          <van-loading size="24px" type="spinner" color="#00BFC0" text-color="#00BFC0">加载中...</van-loading>
+          <van-loading size="24px" type="spinner" color="#00BFC0" text-color="#00BFC0"
+            >加载中...</van-loading
+          >
         </div>
       </van-tab>
     </van-tabs>
@@ -95,22 +96,15 @@ export default {
         page: this.goods[type].page,
         type,
       });
-      this.goods[type].leftList.push(
-        ...data.filter((item, index) => index % 2 == 0)
-      );
-      this.goods[type].rightList.push(
-        ...data.filter((item, index) => index % 2 == 1)
-      );
+      this.goods[type].leftList.push(...data.filter((item, index) => index % 2 == 0));
+      this.goods[type].rightList.push(...data.filter((item, index) => index % 2 == 1));
       this.goods[type].page++;
     },
     scroll() {
       // 获取滚动的高度
       document.addEventListener("scroll", () => {
         if (document.documentElement.scrollTop > 188) {
-          setTimeout(
-            () => (this.scrollTop = document.documentElement.scrollTop),
-            2000
-          );
+          setTimeout(() => (this.scrollTop = document.documentElement.scrollTop), 2000);
         } else {
           this.scrollTop = document.documentElement.scrollTop;
         }

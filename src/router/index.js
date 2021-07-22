@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { queryToken } from '../util'
 
 Vue.use(VueRouter)
 
@@ -14,7 +15,7 @@ const routes = [
   },
   {
     name: 'detail',
-    path: '/detail/:iid',
+    path: '/detail/:iid/:id',
     component: () => import('../views/home/Detail.vue'),
     meta: {
       title: '商品详情'
@@ -33,7 +34,8 @@ const routes = [
     path: '/cart',
     component: () => import('../views/cart/Cart.vue'),
     meta: {
-      title: '购物车'
+      title: '购物车',
+      requireAuth: true
     }
   },
   {
@@ -41,7 +43,42 @@ const routes = [
     path: '/profile',
     component: () => import('../views/profile/Profile.vue'),
     meta: {
-      title: '我的'
+      title: '我的',
+      requireAuth: true
+    }
+  },
+  {
+    name: 'register',
+    path: '/register',
+    component: () => import('../views/profile/Register.vue'),
+    meta: {
+      title: '注册'
+    }
+  },
+  {
+    name: 'login',
+    path: '/login',
+    component: () => import('../views/profile/Login.vue'),
+    meta: {
+      title: '登录'
+    }
+  },
+  {
+    name: 'order',
+    path: '/order',
+    component: () => import('../views/order/Order.vue'),
+    meta: {
+      title: '订单',
+      requireAuth: true
+    }
+  },
+  {
+    name: 'order-detail',
+    path: '/order-detail',
+    component: () => import('../views/order/OrderDetail.vue'),
+    meta: {
+      title: '订单详情',
+      requireAuth: true
     }
   },
 ]
@@ -52,6 +89,13 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
+  // 验证授权
+  if (to.meta.requireAuth) {
+    if (!queryToken().token) {
+      router.replace('/login')
+    }
+  }
+
   window.document.title = to.meta.title
   next()
 })

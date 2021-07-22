@@ -2,11 +2,10 @@
   <div class="recommend">
     <div v-for="item in recommend" :key="item.id" class="recommend-item">
       <img v-lazy="item.image" />
-      <div class="title">{{item.title}}</div>
+      <div class="title">{{ item.title }}</div>
     </div>
   </div>
 </template>
-
 <script>
 export default {
   props: {

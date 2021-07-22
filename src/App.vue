@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <router-view />
+    <keep-alive exclude="detail,order,orderDetail">
+     <router-view />
+    </keep-alive>
     <tab-bar />
   </div>
 </template>
@@ -11,6 +13,6 @@ export default {
 };
 </script>
 <style lang="less">
-@import url("//at.alicdn.com/t/font_1431323_0md7akg91rp.css");
+@import url("//at.alicdn.com/t/font_1431323_y1dx70mhrl8.css");
 @import url("https://cdn.bootcdn.net/ajax/libs/reseter.css/1.2.0/reseter.min.css");
 </style>
